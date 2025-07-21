@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparador de Precios</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🛒 Comparador de Ofertas</h1>
+    <input type="text" id="query" placeholder="¿Qué estás buscando?" />
+    <button onclick="buscar()">Buscar</button>
+
+    <h2>Resultados:</h2>
+    <ul id="resultados"></ul>
+    <div id="mejor-oferta"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f4f4;
+  padding: 20px;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #ccc;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #0275d8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+#mejor-oferta {
+  margin-top: 20px;
+  font-weight: bold;
+  color: green;
+}
+async function buscar() {
+  const query = document.getElementById('query').value;
+  const url = `https://api.mercadolibre.com/sites/MLA/search?q=${encodeURIComponent(query)}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const productos = data.results.slice(0, 10);
+
+  const lista = document.getElementById('resultados');
+  const mejorOferta = document.getElementById('mejor-oferta');
+  lista.innerHTML = '';
+  mejorOferta.innerHTML = '';
+
+  let precioMin = Infinity;
+  let ofertaDestacada = null;
+
+  productos.forEach(item => {
+    const { title, price, permalink } = item;
+    lista.innerHTML += `<li><a href="${permalink}" target="_blank">${title}</a> - $${price}</li>`;
+
+    if (price < precioMin) {
+      precioMin = price;
+      ofertaDestacada = item;
+    }
+  });
+
+  if (ofertaDestacada) {
+    mejorOferta.innerHTML = `💡 Mejor oferta: <a href="${ofertaDestacada.permalink}" target="_blank">${ofertaDestacada.title}</a> - $${ofertaDestacada.price}`;
+  }
+}
